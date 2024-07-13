@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+
+  tenant-1-employee-db:
+    container_name: tenant-1-employee-db
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: "employee_db"
+      POSTGRES_USER: "employee_tenant_1"
+      POSTGRES_PASSWORD: "Z123456"
+    volumes:
+      - ./init/employee:/docker-entrypoint-initdb.d
+    ports:
+      - "65431:5432"
+
+  tenant-2-employee-db:
+    container_name: tenant-2-employee-db
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: "employee_db"
+      POSTGRES_USER: "employee_tenant_2"
+      POSTGRES_PASSWORD: "Z123456"
+    volumes:
+      - ./init/employee:/docker-entrypoint-initdb.d
+    ports:
+      - "65432:5432"
+
+  organization-db:
+    container_name: organization-db
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: "organization_db"
+      POSTGRES_USER: "organization_user"
+      POSTGRES_PASSWORD: "Z123456"
+    volumes:
+      - ./init/organization:/docker-entrypoint-initdb.d
+    ports:
+      - "65433:5432"
+
+  device-db:
+    container_name: device-db
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: "device_db"
+      POSTGRES_USER: "device_user"
+      POSTGRES_PASSWORD: "Z123456"
+    volumes:
+      - ./init/device:/docker-entrypoint-initdb.d
+    ports:
+      - "65434:5432"
+
+  tenant-db:
+    container_name: tenant-db
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: "tenant_db"
+      POSTGRES_USER: "tenant_user"
+      POSTGRES_PASSWORD: "Z123456"
+    ports:
+      - "65435:5432"
+
+  consul-server:
+    image: hashicorp/consul:1.10.0
+    container_name: consul-server
+    restart: always
+    volumes:
+      - ./consul/server.json:/consul/config/server.json:ro
+    ports:
+      - "8500:8500"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    command: "agent"
+
+  consul-client:
+    image: hashicorp/consul:1.10.0
+    container_name: consul-client
+    restart: always
+    volumes:
+      - ./consul/client.json:/consul/config/client.json:ro
+    command: "agent"

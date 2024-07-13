@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: employee-service
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${random.value}
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+tenant-settings:
+  defaultTenant: tenant_1
+  tenants:
+    tenant_1:
+      datasource:
+        url: jdbc:postgresql://localhost:65431/employee_db
+        username: employee_tenant_1
+        password: Z123456
+        driver-class-name: org.postgresql.Driver
+    tenant_2:
+      datasource:
+        url: jdbc:postgresql://localhost:65432/employee_db
+        username: employee_tenant_2
+        password: Z123456
+        driver-class-name: org.postgresql.Driver
+
+server:
+  port: 8081
+
+management:
+  info:
+    build:
+      enabled: true
+  health:
+    db:
+      enabled: true
+    ping:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info}

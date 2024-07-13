@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: device-service
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${random.value}
+  datasource:
+    url: jdbc:postgresql://localhost:65434/device_db
+    username: device_user
+    password: Z123456
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8083
+
+management:
+  info:
+    build:
+      enabled: true
+  health:
+    db:
+      enabled: true
+    ping:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info}

@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: organization-service
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${random.value}
+  datasource:
+    url: jdbc:postgresql://localhost:65433/organization_db
+    username: organization_user
+    password: Z123456
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+tenant-settings:
+  defaultTenant: tenant_1
+  maximumSize: 100
+  expireAfterAccess: 10
+  tenants:
+    tenant_1:
+      schema: tenant_1
+    tenant_2:
+      schema: tenant_2
+
+server:
+  port: 8082
+
+management:
+  info:
+    build:
+      enabled: true
+  health:
+    db:
+      enabled: true
+    ping:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/device-service/multitenacy-microservices.device-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/device-service/multitenacy-microservices.device-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/employee-service/multitenacy-microservices.employee-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/employee-service/multitenacy-microservices.employee-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/organization-service/multitenacy-microservices.organization-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/organization-service/multitenacy-microservices.organization-service.main.iml" />
+    </modules>
+  </component>
+</project>

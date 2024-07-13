@@ -1,0 +1,6 @@
+rootProject.name = 'multitenacy-microservices'
+
+include 'employee-service'
+include 'organization-service'
+include 'device-service'
+include 'tenant-service'
