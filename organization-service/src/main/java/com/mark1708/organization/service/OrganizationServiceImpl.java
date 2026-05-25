@@ -3,13 +3,12 @@ package com.mark1708.organization.service;
 import com.mark1708.organization.domain.Organization;
 import com.mark1708.organization.dto.OrganizationDto;
 import com.mark1708.organization.repository.OrganizationRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,22 +18,19 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public Page<OrganizationDto> getAll(Pageable pageable) {
-        return organizationRepository.findAll(pageable)
-                .map(this::toDto);
+        return organizationRepository.findAll(pageable).map(this::toDto);
     }
 
     @Override
-    @Cacheable(value = "OrganizationCache", unless="#result == null")
+    @Cacheable(
+            value = "OrganizationCache",
+            key = "T(com.mark1708.organization.multitenancy.context.TenantContext)" + ".getCurrentTenant() + '_' + #id",
+            unless = "#result == null")
     public OrganizationDto getById(UUID id) {
-        return organizationRepository.findById(id)
-                .map(this::toDto)
-                .orElseThrow();
+        return organizationRepository.findById(id).map(this::toDto).orElseThrow();
     }
 
     private OrganizationDto toDto(Organization organization) {
-        return new OrganizationDto(
-                organization.getId(),
-                organization.getName()
-        );
+        return new OrganizationDto(organization.getId(), organization.getName());
     }
 }

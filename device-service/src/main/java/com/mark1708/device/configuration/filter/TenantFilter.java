@@ -7,25 +7,39 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.stereotype.Component;
-
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.springframework.stereotype.Component;
 
 @Component
 class TenantFilter implements Filter {
 
+    private static final String TENANT_HEADER = "X-TenantID";
+    private static final String ACTUATOR_PATH_PREFIX = "/actuator";
+
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response,
-                         FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest) request;
-        String tenantName = req.getHeader("X-TenantID");
+        if (req.getRequestURI().startsWith(ACTUATOR_PATH_PREFIX)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        String tenantName = req.getHeader(TENANT_HEADER);
+        if (tenantName == null || tenantName.isBlank()) {
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing or blank " + TENANT_HEADER + " header");
+            return;
+        }
+
         TenantContext.setCurrentTenant(tenantName);
 
         try {
             chain.doFilter(request, response);
         } finally {
-            TenantContext.setCurrentTenant("");
+            TenantContext.clear();
         }
     }
 }

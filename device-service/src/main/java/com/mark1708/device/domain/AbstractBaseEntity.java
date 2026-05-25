@@ -2,13 +2,12 @@ package com.mark1708.device.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.TenantId;
-
-import java.io.Serializable;
 
 @MappedSuperclass
 @Getter
@@ -21,5 +20,4 @@ public abstract class AbstractBaseEntity implements Serializable {
     @TenantId
     @Column(name = "tenant_id", nullable = false)
     private String tenantId;
-
 }

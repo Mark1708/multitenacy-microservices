@@ -6,12 +6,11 @@ import com.mark1708.employee.dto.IdNameDto;
 import com.mark1708.employee.dto.OrganizationDto;
 import com.mark1708.employee.feign.OrganizationFeignClient;
 import com.mark1708.employee.repository.EmployeeRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,15 +21,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Page<EmployeeDto> getAll(Pageable pageable) {
-        return employeeRepository.findAll(pageable)
-                .map(this::toDto);
+        return employeeRepository.findAll(pageable).map(this::toDto);
     }
 
     @Override
     public EmployeeDto getById(UUID id) {
-        return employeeRepository.findById(id)
-                .map(this::toDto)
-                .orElseThrow();
+        return employeeRepository.findById(id).map(this::toDto).orElseThrow();
     }
 
     private EmployeeDto toDto(Employee employee) {
@@ -40,10 +36,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                 employee.getFirstName(),
                 employee.getSecondName(),
                 employee.getMiddleName(),
-                new IdNameDto(
-                        organizationDto.id(),
-                        organizationDto.name()
-                )
-        );
+                new IdNameDto(organizationDto.id(), organizationDto.name()));
     }
 }

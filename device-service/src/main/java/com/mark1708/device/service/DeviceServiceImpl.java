@@ -6,12 +6,11 @@ import com.mark1708.device.dto.EmployeeDto;
 import com.mark1708.device.dto.IdNameDto;
 import com.mark1708.device.feign.EmployeeFeignClient;
 import com.mark1708.device.repository.DeviceRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,15 +21,12 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     public Page<DeviceDto> getAll(Pageable pageable) {
-        return deviceRepository.findAll(pageable)
-                .map(this::toDto);
+        return deviceRepository.findAll(pageable).map(this::toDto);
     }
 
     @Override
     public DeviceDto getById(UUID id) {
-        return deviceRepository.findById(id)
-                .map(this::toDto)
-                .orElseThrow();
+        return deviceRepository.findById(id).map(this::toDto).orElseThrow();
     }
 
     private DeviceDto toDto(Device device) {
@@ -40,10 +36,6 @@ public class DeviceServiceImpl implements DeviceService {
                 device.getImei(),
                 new IdNameDto(
                         employeeDto.id(),
-                        employeeDto.secondName() + " " +
-                        employeeDto.firstName() + " " +
-                        employeeDto.middleName()
-                )
-        );
+                        employeeDto.secondName() + " " + employeeDto.firstName() + " " + employeeDto.middleName()));
     }
 }

@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+  datasource:
+    url: ${DEVICE_DB_URL:jdbc:postgresql://localhost:65434/device_db}
+    username: ${DEVICE_DB_USER:device_user}
+    password: ${DEVICE_DB_PASSWORD:${DB_PASSWORD:change-me}}

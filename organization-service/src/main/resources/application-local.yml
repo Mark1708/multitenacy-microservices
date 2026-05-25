@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+  datasource:
+    url: ${ORGANIZATION_DB_URL:jdbc:postgresql://localhost:65433/organization_db}
+    username: ${ORGANIZATION_DB_USER:organization_user}
+    password: ${ORGANIZATION_DB_PASSWORD:${DB_PASSWORD:change-me}}

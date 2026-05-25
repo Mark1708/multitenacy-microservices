@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
 
   tenant-1-employee-db:
@@ -8,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: "employee_db"
       POSTGRES_USER: "employee_tenant_1"
-      POSTGRES_PASSWORD: "Z123456"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-change-me}"
     volumes:
       - ./init/employee:/docker-entrypoint-initdb.d
     ports:
@@ -20,7 +18,7 @@ services:
     environment:
       POSTGRES_DB: "employee_db"
       POSTGRES_USER: "employee_tenant_2"
-      POSTGRES_PASSWORD: "Z123456"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-change-me}"
     volumes:
       - ./init/employee:/docker-entrypoint-initdb.d
     ports:
@@ -32,7 +30,7 @@ services:
     environment:
       POSTGRES_DB: "organization_db"
       POSTGRES_USER: "organization_user"
-      POSTGRES_PASSWORD: "Z123456"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-change-me}"
     volumes:
       - ./init/organization:/docker-entrypoint-initdb.d
     ports:
@@ -44,7 +42,7 @@ services:
     environment:
       POSTGRES_DB: "device_db"
       POSTGRES_USER: "device_user"
-      POSTGRES_PASSWORD: "Z123456"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-change-me}"
     volumes:
       - ./init/device:/docker-entrypoint-initdb.d
     ports:
@@ -56,7 +54,7 @@ services:
     environment:
       POSTGRES_DB: "tenant_db"
       POSTGRES_USER: "tenant_user"
-      POSTGRES_PASSWORD: "Z123456"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-change-me}"
     ports:
       - "65435:5432"
 

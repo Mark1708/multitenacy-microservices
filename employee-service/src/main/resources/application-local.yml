@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+
+tenant-settings:
+  tenants:
+    tenant_1:
+      datasource:
+        url: ${EMPLOYEE_TENANT_1_DB_URL:jdbc:postgresql://localhost:65431/employee_db}
+        username: ${EMPLOYEE_TENANT_1_DB_USER:employee_tenant_1}
+        password: ${EMPLOYEE_TENANT_1_DB_PASSWORD:${DB_PASSWORD:change-me}}
+    tenant_2:
+      datasource:
+        url: ${EMPLOYEE_TENANT_2_DB_URL:jdbc:postgresql://localhost:65432/employee_db}
+        username: ${EMPLOYEE_TENANT_2_DB_USER:employee_tenant_2}
+        password: ${EMPLOYEE_TENANT_2_DB_PASSWORD:${DB_PASSWORD:change-me}}

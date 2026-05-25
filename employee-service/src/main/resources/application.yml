@@ -19,19 +19,23 @@ tenant-settings:
       datasource:
         url: jdbc:postgresql://localhost:65431/employee_db
         username: employee_tenant_1
-        password: Z123456
+        password: ${DB_PASSWORD:change-me}
         driver-class-name: org.postgresql.Driver
     tenant_2:
       datasource:
         url: jdbc:postgresql://localhost:65432/employee_db
         username: employee_tenant_2
-        password: Z123456
+        password: ${DB_PASSWORD:change-me}
         driver-class-name: org.postgresql.Driver
 
 server:
   port: 8081
 
 management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
   info:
     build:
       enabled: true
@@ -43,4 +47,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: ${ACTUATOR_ENDPOINTS:health,info}
+        include: ${ACTUATOR_ENDPOINTS:health,info,metrics,prometheus}

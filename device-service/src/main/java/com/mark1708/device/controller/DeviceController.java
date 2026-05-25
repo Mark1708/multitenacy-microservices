@@ -3,6 +3,7 @@ package com.mark1708.device.controller;
 import com.mark1708.device.configuration.helper.TenantId;
 import com.mark1708.device.dto.DeviceDto;
 import com.mark1708.device.service.DeviceService;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -11,8 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 @Slf4j
 @RestController

@@ -11,13 +11,16 @@ public class TenantResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.getParameterAnnotation(TenantId.class) != null &&
-                parameter.getParameterType().getTypeName().equals("java.lang.String");
+        return parameter.getParameterAnnotation(TenantId.class) != null
+                && parameter.getParameterType().getTypeName().equals("java.lang.String");
     }
 
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+    public Object resolveArgument(
+            MethodParameter parameter,
+            ModelAndViewContainer mavContainer,
+            NativeWebRequest webRequest,
+            WebDataBinderFactory binderFactory) {
         return TenantContext.getCurrentTenant();
     }
 }

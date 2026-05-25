@@ -1,0 +1,15 @@
+spring:
+  cloud:
+    consul:
+      enabled: false
+    discovery:
+      enabled: false
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: false

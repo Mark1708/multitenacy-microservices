@@ -1,16 +1,16 @@
 package com.mark1708.device.configuration.resolver;
 
 import com.mark1708.device.configuration.context.TenantContext;
+import java.util.Map;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.Map;
-
 @Component("currentTenantIdentifierResolver")
-public class CurrentTenantIdentifierResolverImpl implements CurrentTenantIdentifierResolver<String>, HibernatePropertiesCustomizer {
+public class CurrentTenantIdentifierResolverImpl
+        implements CurrentTenantIdentifierResolver<String>, HibernatePropertiesCustomizer {
 
     @Override
     public String resolveCurrentTenantIdentifier() {

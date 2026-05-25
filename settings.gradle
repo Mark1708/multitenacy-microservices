@@ -1,4 +1,4 @@
-rootProject.name = 'multitenacy-microservices'
+rootProject.name = 'multitenancy-microservices'
 
 include 'employee-service'
 include 'organization-service'

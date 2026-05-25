@@ -10,8 +10,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 public class OrganizationApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(OrganizationApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(OrganizationApplication.class, args);
+    }
 }
