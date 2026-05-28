@@ -10,11 +10,11 @@
 
 | Поле | Значение |
 |---|---|
-| Статус | Sandbox backend architecture demo |
+| Статус | Sandbox-демо backend-архитектуры |
 | Тип | Spring Boot microservices / multi-tenancy demo |
 | Основной stack | Java 21, Spring Boot 3.3.1, Spring Cloud 2023.0.2, PostgreSQL 15, Consul, Docker Compose |
-| Services | `employee-service`, `organization-service`, `device-service`, `tenant-service` |
-| API style | REST с tenant-aware headers на domain services |
+| Сервисы | `employee-service`, `organization-service`, `device-service`, `tenant-service` |
+| Стиль API | REST с tenant-aware headers на domain services |
 | Quick verify | `./gradlew build` |
 | Уровень проверки | Manifest-verified; commands documented, not rerun during README rollout |
 
@@ -26,30 +26,30 @@
 
 Публичный repository path сейчас содержит историческую опечатку `multitenacy-microservices`; project name, README title и Gradle root project используют исправленное написание `multitenancy-microservices`.
 
-## Runtime
+## Runtime-среда
 
-| Component | Value | Source |
+| Компонент | Значение | Источник |
 |---|---|---|
 | Java | 21 via Gradle toolchain | `*/build.gradle` |
 | Gradle wrapper | 8.6 at repository root | `gradle/wrapper/gradle-wrapper.properties` |
 | Spring Boot | 3.3.1 | `*/build.gradle` |
 | Spring Cloud | 2023.0.2 | `*/build.gradle` |
-| Database | PostgreSQL 15 Alpine containers | `docker-compose.yml` |
+| База данных | PostgreSQL 15 Alpine containers | `docker-compose.yml` |
 | Service discovery | HashiCorp Consul 1.10.0 | `docker-compose.yml` |
-| Observability | Spring Boot Actuator, Micrometer Prometheus registry | `*/build.gradle`, `*/application.yml` |
+| Наблюдаемость | Spring Boot Actuator, Micrometer Prometheus registry | `*/build.gradle`, `*/application.yml` |
 
 ## Архитектура
 
 Репозиторий содержит четыре Spring Boot services и локальную инфраструктуру для tenant-aware backend design:
 
-| Module | Responsibility | Tenant model | Default port |
+| Модуль | Ответственность | Tenant model | Default port |
 |---|---|---|---|
-| `employee-service` | Employee API and employee data | Database per tenant | `8081` |
-| `organization-service` | Organization API and organization data | Schema per tenant | `8082` |
-| `device-service` | Device API and demo device data | Tenant column / Hibernate tenant id | `8083` |
+| `employee-service` | Employee API и employee data | Database per tenant | `8081` |
+| `organization-service` | Organization API и organization data | Schema per tenant | `8082` |
+| `device-service` | Device API и demo device data | Tenant column / Hibernate tenant id | `8083` |
 | `tenant-service` | Tenant metadata registry | Shared tenant catalog | `8084` |
 
-![Architecture](assets/multitenancy.png)
+![Архитектура](assets/multitenancy.png)
 
 ## Структура репозитория
 
@@ -64,7 +64,7 @@
 
 ## API surface
 
-| Service | Routes | Tenant requirement |
+| Сервис | Routes | Tenant requirement |
 |---|---|---|
 | `employee-service` | `/api/v1/employee`, `/api/v1/employee/{id}` | Требует `X-TenantID` |
 | `organization-service` | `/api/v1/organization`, `/api/v1/organization/{id}` | Требует `X-TenantID` |
@@ -72,7 +72,7 @@
 | `tenant-service` | `/api/v1/tenant`, `/api/v1/tenant/{id}` | Tenant registry; tenant header requirement в коде не документирован |
 | Все services | `/actuator/health`, `/actuator/info`, `/actuator/metrics`, `/actuator/prometheus` | Actuator routes exempt from tenant headers |
 
-Missing или blank `X-TenantID` headers на tenant-aware domain routes отклоняются с `400 Bad Request`.
+Отсутствующие или пустые `X-TenantID` headers на tenant-aware domain routes отклоняются с `400 Bad Request`.
 
 ## Локальный запуск
 
@@ -115,7 +115,7 @@ SPRING_PROFILES_ACTIVE=local ./gradlew :employee-service:bootRun
 
 ## Локальные порты
 
-| Component | Port(s) | Notes |
+| Компонент | Port(s) | Примечания |
 |---|---:|---|
 | `employee-service` | `8081` | Spring Boot service |
 | `organization-service` | `8082` | Spring Boot service |
@@ -151,19 +151,19 @@ Tenant isolation покрыта integration и controller tests:
 - `device-service` проверяет tenant-column isolation.
 - `employee-service`, `organization-service` и `device-service` controller tests проверяют tenant header validation на API routes.
 
-## Observability
+## Наблюдаемость
 
-Каждый service exposes минимальный Spring Boot Actuator baseline:
+Каждый service публикует минимальный Spring Boot Actuator baseline:
 
 - `/actuator/health` и probe groups для health checks.
 - `/actuator/info` для service metadata.
 - `/actuator/metrics` для Micrometer metrics.
 - `/actuator/prometheus` для Prometheus scraping.
 
-Набор exposed actuator endpoints управляется через `ACTUATOR_ENDPOINTS` и по умолчанию равен `health,info,metrics,prometheus`.
+Набор опубликованных actuator endpoints управляется через `ACTUATOR_ENDPOINTS` и по умолчанию равен `health,info,metrics,prometheus`.
 Каждый service также пишет одну structured `http_request` log line на request: method, URI, status и duration.
 
-## Ограничения / security
+## Ограничения / безопасность
 
 - Только sandbox project; authentication/authorization layer не документирован для public production use.
 - Demo passwords являются placeholders и должны быть заменены для любой реальной среды.
@@ -172,4 +172,4 @@ Tenant isolation покрыта integration и controller tests:
 
 ## Статус
 
-Backend architecture demo. Репозиторий опубликован как reference implementation для service boundaries, runtime wiring и configuration hygiene; он не поддерживается как production-ready product.
+Демо backend-архитектуры. Репозиторий опубликован как reference implementation для service boundaries, runtime wiring и configuration hygiene; он не поддерживается как production-ready product.
