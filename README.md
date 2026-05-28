@@ -1,93 +1,135 @@
 # multitenancy-microservices
 
+> Spring Boot backend architecture demo for comparing multi-tenancy strategies across microservices.
+
+![Java](https://img.shields.io/badge/runtime-java%2021-111827?style=for-the-badge&labelColor=111827&color=5b5ef4)
+![Spring Boot](https://img.shields.io/badge/spring%20boot-3.3.1-111827?style=for-the-badge&labelColor=111827&color=5b5ef4)
+![Status](https://img.shields.io/badge/status-sandbox%20demo-111827?style=for-the-badge&labelColor=111827&color=5b5ef4)
+
 [Русская версия](README.ru.md)
 
-Backend architecture demo exploring multi-tenancy patterns with Spring Boot microservices. Sandbox project, not a production deployment.
+| Field | Value |
+|---|---|
+| Status | Sandbox backend architecture demo |
+| Type | Spring Boot microservices / multi-tenancy demo |
+| Primary stack | Java 21, Spring Boot 3.3.1, Spring Cloud 2023.0.2, PostgreSQL 15, Consul, Docker Compose |
+| Services | `employee-service`, `organization-service`, `device-service`, `tenant-service` |
+| API style | REST with tenant-aware headers on domain services |
+| Maintenance command | `./gradlew build` |
 
-## Project scope
+## Purpose
 
-- Backend architecture demo for comparing multi-tenancy approaches in a microservice system.
-- Focused on Spring Boot service boundaries, service discovery, and PostgreSQL-backed tenant data isolation.
-- Sandbox project, not a maintained product or hardened production deployment.
+- Demonstrate several tenant data-isolation approaches in a Spring Boot microservice system.
+- Keep service boundaries explicit while using local service discovery and PostgreSQL-backed demo data.
+- Preserve a sandbox learning project, not a hardened production deployment.
 
-## Tech stack
+## Runtime
 
-- Java 21 (Gradle toolchain)
-- Spring Boot
-- Spring Cloud
-- Consul for service discovery
-- PostgreSQL
-- Docker Compose
+| Component | Value | Source |
+|---|---|---|
+| Java | 21 via Gradle toolchain | `*/build.gradle` |
+| Gradle wrapper | 8.6 at repository root | `gradle/wrapper/gradle-wrapper.properties` |
+| Spring Boot | 3.3.1 | `*/build.gradle` |
+| Spring Cloud | 2023.0.2 | `*/build.gradle` |
+| Database | PostgreSQL 15 Alpine containers | `docker-compose.yml` |
+| Service discovery | HashiCorp Consul 1.10.0 | `docker-compose.yml` |
+| Observability | Spring Boot Actuator, Micrometer Prometheus registry | `*/build.gradle`, `*/application.yml` |
 
 ## Architecture
 
-The repository contains four Spring Boot microservices and local infrastructure for experimenting with tenant-aware backend design:
+The repository contains four Spring Boot services and local infrastructure for tenant-aware backend design:
 
-- `employee-service` - stores employee data in separate PostgreSQL databases per tenant.
-- `organization-service` - manages organization data with tenant-specific schemas.
-- `device-service` - manages device data for the demo domain.
-- `tenant-service` - stores tenant metadata used by the system.
-- Consul provides local service discovery for the microservices.
-- Docker Compose starts Consul and PostgreSQL containers for the local sandbox environment.
+| Module | Responsibility | Tenant model | Default port |
+|---|---|---|---|
+| `employee-service` | Employee API and employee data | Database per tenant | `8081` |
+| `organization-service` | Organization API and organization data | Schema per tenant | `8082` |
+| `device-service` | Device API and demo device data | Tenant column / Hibernate tenant id | `8083` |
+| `tenant-service` | Tenant metadata registry | Shared tenant catalog | `8084` |
 
 ![Architecture](assets/multitenancy.png)
 
 ## Repository layout
 
-- `employee-service/` - employee API and per-tenant datasource configuration.
-- `organization-service/` - organization API and schema-based tenant configuration.
-- `device-service/` - device API and persistence layer.
-- `tenant-service/` - tenant registry API and persistence layer.
+- `employee-service/` - employee API, Feign integration, and per-tenant datasource configuration.
+- `organization-service/` - organization API, schema-based tenant configuration, and tenant-aware cache coverage.
+- `device-service/` - device API, persistence layer, and tenant-column isolation.
+- `tenant-service/` - tenant registry API and Flyway-backed tenant metadata storage.
 - `consul/` - Consul server and client configuration.
 - `init/` - PostgreSQL initialization scripts for demo databases.
 - `assets/` - architecture image and supporting repository assets.
 - `docker-compose.yml` - local PostgreSQL and Consul stack.
 
-## Quick start
+## API surface
 
-1. Copy the environment template:
+| Service | Routes | Tenant requirement |
+|---|---|---|
+| `employee-service` | `/api/v1/employee`, `/api/v1/employee/{id}` | Requires `X-TenantID` |
+| `organization-service` | `/api/v1/organization`, `/api/v1/organization/{id}` | Requires `X-TenantID` |
+| `device-service` | `/api/v1/device`, `/api/v1/device/{id}` | Requires `X-TenantID` |
+| `tenant-service` | `/api/v1/tenant`, `/api/v1/tenant/{id}` | Tenant registry; no tenant header requirement documented in code |
+| All services | `/actuator/health`, `/actuator/info`, `/actuator/metrics`, `/actuator/prometheus` | Actuator routes are exempt from tenant headers |
 
-```shell
+Missing or blank `X-TenantID` headers on tenant-aware domain routes are rejected with `400 Bad Request`.
+
+## Run locally
+
+1. Copy the environment template and replace demo passwords before sharing or deploying anything derived from it:
+
+```sh
 cp .env.example .env
 ```
 
-2. Set `POSTGRES_PASSWORD` and `DB_PASSWORD` in `.env`. See `.env.example` for the full list of variables.
+2. Start local dependencies:
 
-3. Start the local dependency stack:
-
-```shell
+```sh
 docker compose up -d
 ```
 
-4. Build all services. Run Gradle with JDK 21; Gradle 8.x does not run on Java 25:
+3. Build and test all services with JDK 21:
 
-```shell
+```sh
 export JAVA_HOME=$(/usr/libexec/java_home -v 21) # macOS example
 ./gradlew build
 # If the executable bit is unavailable: sh ./gradlew build
 ```
 
-The build requires Java 21 and a running Consul instance for integration tests.
+The application runtime uses Consul and PostgreSQL from Docker Compose. Test profiles disable Consul/discovery, and tenant isolation tests use Testcontainers where configured.
 
-5. Verify an individual module:
+4. Run a single service against the local stack:
 
-```shell
-export JAVA_HOME=$(/usr/libexec/java_home -v 21) # macOS example
+```sh
+SPRING_PROFILES_ACTIVE=local ./gradlew :employee-service:bootRun
+```
+
+5. Verify individual modules:
+
+```sh
 ./gradlew :employee-service:test
 ./gradlew :organization-service:test
 ./gradlew :device-service:test
 ./gradlew :tenant-service:test
 ```
 
+## Local ports
+
+| Component | Port(s) | Notes |
+|---|---:|---|
+| `employee-service` | `8081` | Spring Boot service |
+| `organization-service` | `8082` | Spring Boot service |
+| `device-service` | `8083` | Spring Boot service |
+| `tenant-service` | `8084` | Spring Boot service |
+| Consul UI/API | `8500` | Docker Compose |
+| Consul DNS | `8600/tcp`, `8600/udp` | Docker Compose |
+| employee tenant 1 DB | `65431` | PostgreSQL container |
+| employee tenant 2 DB | `65432` | PostgreSQL container |
+| organization DB | `65433` | PostgreSQL container |
+| device DB | `65434` | PostgreSQL container |
+| tenant DB | `65435` | PostgreSQL container |
+
 ## Configuration profiles
 
 - Default profile: shared service defaults such as service name, port, JPA dialect, actuator exposure, and demo-safe environment placeholders.
-- `local` profile: local Docker Compose endpoints and overrideable datasource/Consul variables. Use it when running services against the local stack:
-
-```shell
-SPRING_PROFILES_ACTIVE=local ./gradlew :employee-service:bootRun
-```
-
+- `local` profile: local Docker Compose endpoints and overrideable datasource/Consul variables.
 - `test` profile: disables Consul/discovery and database health checks for lightweight context and actuator smoke tests. `tenant-service` also disables Flyway in this profile unless a specific integration test overrides it.
 
 Common local variables:
@@ -99,14 +141,12 @@ Common local variables:
 
 ## Tenant routing and isolation tests
 
-Tenant-aware API routes require the `X-TenantID` header. Missing or blank tenant headers are rejected with `400 Bad Request`. Actuator endpoints under `/actuator/**` are exempt so health checks and metrics do not require tenant context.
-
 Tenant isolation is covered by integration and controller tests:
 
 - `employee-service` verifies database-per-tenant routing with Testcontainers and fails closed for unknown tenants instead of falling back to the default datasource.
 - `organization-service` verifies schema-per-tenant isolation with Testcontainers and includes a tenant-aware cache regression test.
+- `device-service` verifies tenant-column isolation.
 - `employee-service`, `organization-service`, and `device-service` controller tests verify tenant header validation on API routes.
-
 ## Observability
 
 Each service exposes a minimal Spring Boot Actuator baseline:
@@ -119,6 +159,13 @@ Each service exposes a minimal Spring Boot Actuator baseline:
 The exposed actuator set is controlled by `ACTUATOR_ENDPOINTS` and defaults to `health,info,metrics,prometheus`.
 Each service also logs one structured `http_request` line per request with method, URI, status, and duration.
 
+## Limitations / security
+
+- Sandbox project only; no authentication/authorization layer is documented for public production use.
+- Demo passwords are placeholders and must be replaced for any real environment.
+- Tenant isolation patterns are intentionally mixed for comparison, not a single recommended production blueprint.
+- Review database migrations, tenant provisioning, observability, and auth before adapting this code outside a local demo.
+
 ## Status
 
-Backend architecture demo only. This repository is a sandbox for studying multi-tenancy patterns and is not positioned as a maintained product.
+Backend architecture demo. The repository is public as a reference implementation for service boundaries, runtime wiring, and configuration hygiene; it is not maintained as a production-ready product.

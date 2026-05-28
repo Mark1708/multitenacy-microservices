@@ -1,115 +1,159 @@
 # multitenancy-microservices
 
+> Spring Boot backend architecture demo для сравнения multi-tenancy strategies в микросервисах.
+
+![Java](https://img.shields.io/badge/runtime-java%2021-111827?style=for-the-badge&labelColor=111827&color=5b5ef4)
+![Spring Boot](https://img.shields.io/badge/spring%20boot-3.3.1-111827?style=for-the-badge&labelColor=111827&color=5b5ef4)
+![Status](https://img.shields.io/badge/status-sandbox%20demo-111827?style=for-the-badge&labelColor=111827&color=5b5ef4)
+
 [English version](README.md)
 
-Демонстрационный backend-проект для изучения multi-tenancy patterns на Spring Boot microservices. Sandbox-проект, не production deployment.
+| Поле | Значение |
+|---|---|
+| Статус | Sandbox backend architecture demo |
+| Тип | Spring Boot microservices / multi-tenancy demo |
+| Основной stack | Java 21, Spring Boot 3.3.1, Spring Cloud 2023.0.2, PostgreSQL 15, Consul, Docker Compose |
+| Services | `employee-service`, `organization-service`, `device-service`, `tenant-service` |
+| API style | REST с tenant-aware headers на domain services |
+| Quick verify | `./gradlew build` |
+| Уровень проверки | Manifest-verified; commands documented, not rerun during README rollout |
 
-## Назначение проекта
+## Назначение
 
-- Backend architecture demo для сравнения подходов к multi-tenancy в микросервисной системе.
-- Фокус на границах Spring Boot сервисов, service discovery и изоляции tenant-данных в PostgreSQL.
-- Sandbox-проект, не поддерживаемый продукт и не hardened production deployment.
+- Показать несколько подходов к tenant data isolation в Spring Boot microservice system.
+- Сохранить явные service boundaries при использовании local service discovery и PostgreSQL-backed demo data.
+- Зафиксировать sandbox learning project, а не hardened production deployment.
 
-## Технологический стек
+Публичный repository path сейчас содержит историческую опечатку `multitenacy-microservices`; project name, README title и Gradle root project используют исправленное написание `multitenancy-microservices`.
 
-- Java 21 (Gradle toolchain)
-- Spring Boot
-- Spring Cloud
-- Consul для service discovery
-- PostgreSQL
-- Docker Compose
+## Runtime
+
+| Component | Value | Source |
+|---|---|---|
+| Java | 21 via Gradle toolchain | `*/build.gradle` |
+| Gradle wrapper | 8.6 at repository root | `gradle/wrapper/gradle-wrapper.properties` |
+| Spring Boot | 3.3.1 | `*/build.gradle` |
+| Spring Cloud | 2023.0.2 | `*/build.gradle` |
+| Database | PostgreSQL 15 Alpine containers | `docker-compose.yml` |
+| Service discovery | HashiCorp Consul 1.10.0 | `docker-compose.yml` |
+| Observability | Spring Boot Actuator, Micrometer Prometheus registry | `*/build.gradle`, `*/application.yml` |
 
 ## Архитектура
 
-Репозиторий содержит четыре Spring Boot microservices и локальную инфраструктуру для экспериментов с tenant-aware backend design:
+Репозиторий содержит четыре Spring Boot services и локальную инфраструктуру для tenant-aware backend design:
 
-- `employee-service` - хранит employee data в отдельных PostgreSQL databases для каждого tenant.
-- `organization-service` - управляет organization data с tenant-specific schemas.
-- `device-service` - управляет device data для demo domain.
-- `tenant-service` - хранит tenant metadata, используемые системой.
-- Consul обеспечивает local service discovery для microservices.
-- Docker Compose запускает Consul и PostgreSQL containers для локального sandbox environment.
+| Module | Responsibility | Tenant model | Default port |
+|---|---|---|---|
+| `employee-service` | Employee API and employee data | Database per tenant | `8081` |
+| `organization-service` | Organization API and organization data | Schema per tenant | `8082` |
+| `device-service` | Device API and demo device data | Tenant column / Hibernate tenant id | `8083` |
+| `tenant-service` | Tenant metadata registry | Shared tenant catalog | `8084` |
 
 ![Architecture](assets/multitenancy.png)
 
 ## Структура репозитория
 
-- `employee-service/` - employee API и per-tenant datasource configuration.
-- `organization-service/` - organization API и schema-based tenant configuration.
-- `device-service/` - device API и persistence layer.
-- `tenant-service/` - tenant registry API и persistence layer.
+- `employee-service/` - employee API, Feign integration и per-tenant datasource configuration.
+- `organization-service/` - organization API, schema-based tenant configuration и tenant-aware cache coverage.
+- `device-service/` - device API, persistence layer и tenant-column isolation.
+- `tenant-service/` - tenant registry API и Flyway-backed tenant metadata storage.
 - `consul/` - конфигурация Consul server и client.
 - `init/` - PostgreSQL initialization scripts для demo databases.
 - `assets/` - architecture image и supporting repository assets.
 - `docker-compose.yml` - локальный PostgreSQL и Consul stack.
 
-## Быстрый старт
+## API surface
 
-1. Скопируйте шаблон переменных окружения:
+| Service | Routes | Tenant requirement |
+|---|---|---|
+| `employee-service` | `/api/v1/employee`, `/api/v1/employee/{id}` | Требует `X-TenantID` |
+| `organization-service` | `/api/v1/organization`, `/api/v1/organization/{id}` | Требует `X-TenantID` |
+| `device-service` | `/api/v1/device`, `/api/v1/device/{id}` | Требует `X-TenantID` |
+| `tenant-service` | `/api/v1/tenant`, `/api/v1/tenant/{id}` | Tenant registry; tenant header requirement в коде не документирован |
+| Все services | `/actuator/health`, `/actuator/info`, `/actuator/metrics`, `/actuator/prometheus` | Actuator routes exempt from tenant headers |
 
-```shell
+Missing или blank `X-TenantID` headers на tenant-aware domain routes отклоняются с `400 Bad Request`.
+
+## Локальный запуск
+
+1. Скопируйте environment template и замените demo passwords перед публикацией или любым derived deployment:
+
+```sh
 cp .env.example .env
 ```
 
-2. Установите `POSTGRES_PASSWORD` и `DB_PASSWORD` в `.env`. Полный список переменных -- в `.env.example`.
+2. Запустите local dependencies:
 
-3. Запустите локальные зависимости:
-
-```shell
+```sh
 docker compose up -d
 ```
 
-4. Соберите все сервисы. Запускайте Gradle под JDK 21; Gradle 8.x не запускается на Java 25:
+3. Соберите и проверьте все services с JDK 21:
 
-```shell
+```sh
 export JAVA_HOME=$(/usr/libexec/java_home -v 21) # пример для macOS
 ./gradlew build
 # Если executable bit недоступен: sh ./gradlew build
 ```
 
-Для сборки требуется Java 21 и запущенный Consul для integration tests.
+Application runtime использует Consul и PostgreSQL из Docker Compose. Test profiles отключают Consul/discovery, а tenant isolation tests используют Testcontainers там, где это настроено.
 
-5. Проверьте отдельный модуль:
+4. Запустите отдельный service против local stack:
 
-```shell
-export JAVA_HOME=$(/usr/libexec/java_home -v 21) # пример для macOS
+```sh
+SPRING_PROFILES_ACTIVE=local ./gradlew :employee-service:bootRun
+```
+
+5. Проверьте отдельные modules:
+
+```sh
 ./gradlew :employee-service:test
 ./gradlew :organization-service:test
 ./gradlew :device-service:test
 ./gradlew :tenant-service:test
 ```
 
+## Локальные порты
+
+| Component | Port(s) | Notes |
+|---|---:|---|
+| `employee-service` | `8081` | Spring Boot service |
+| `organization-service` | `8082` | Spring Boot service |
+| `device-service` | `8083` | Spring Boot service |
+| `tenant-service` | `8084` | Spring Boot service |
+| Consul UI/API | `8500` | Docker Compose |
+| Consul DNS | `8600/tcp`, `8600/udp` | Docker Compose |
+| employee tenant 1 DB | `65431` | PostgreSQL container |
+| employee tenant 2 DB | `65432` | PostgreSQL container |
+| organization DB | `65433` | PostgreSQL container |
+| device DB | `65434` | PostgreSQL container |
+| tenant DB | `65435` | PostgreSQL container |
+
 ## Профили конфигурации
 
-- Default profile: общие настройки сервисов -- service name, port, JPA dialect, actuator exposure и demo-safe environment placeholders.
-- `local` profile: endpoints локального Docker Compose и переопределяемые datasource/Consul variables. Используйте его при запуске сервисов против локального stack:
-
-```shell
-SPRING_PROFILES_ACTIVE=local ./gradlew :employee-service:bootRun
-```
-
+- Default profile: общие настройки сервисов — service name, port, JPA dialect, actuator exposure и demo-safe environment placeholders.
+- `local` profile: local Docker Compose endpoints и переопределяемые datasource/Consul variables.
 - `test` profile: отключает Consul/discovery и database health checks для lightweight context и actuator smoke tests. В `tenant-service` этот профиль также отключает Flyway, если конкретный integration test не переопределяет это явно.
 
-Основные локальные переменные:
+Основные local variables:
 
-- `POSTGRES_PASSWORD` -- пароль PostgreSQL для Docker Compose.
-- `DB_PASSWORD` -- общий demo database password для сервисов, если service-specific overrides не заданы.
-- `CONSUL_HOST`, `CONSUL_PORT` -- переопределения local Consul endpoint.
+- `POSTGRES_PASSWORD` - Docker Compose PostgreSQL password.
+- `DB_PASSWORD` - shared demo database password, используемый services при отсутствии service-specific overrides.
+- `CONSUL_HOST`, `CONSUL_PORT` - local Consul endpoint overrides.
 - Service-specific overrides вроде `EMPLOYEE_TENANT_1_DB_URL`, `ORGANIZATION_DB_URL`, `DEVICE_DB_URL` и `TENANT_DB_URL` доступны в соответствующих `application-local.yml`.
 
 ## Tenant routing и isolation tests
 
-Tenant-aware API routes требуют header `X-TenantID`. Missing или blank tenant headers отклоняются с `400 Bad Request`. Actuator endpoints под `/actuator/**` исключены, чтобы health checks и metrics не требовали tenant context.
-
 Tenant isolation покрыта integration и controller tests:
 
 - `employee-service` проверяет database-per-tenant routing через Testcontainers и fail-closed поведение для unknown tenants без fallback на default datasource.
-- `organization-service` проверяет schema-per-tenant isolation через Testcontainers и содержит regression test для tenant-aware cache.
+- `organization-service` проверяет schema-per-tenant isolation через Testcontainers и содержит tenant-aware cache regression test.
+- `device-service` проверяет tenant-column isolation.
 - `employee-service`, `organization-service` и `device-service` controller tests проверяют tenant header validation на API routes.
 
 ## Observability
 
-Каждый сервис включает минимальный Spring Boot Actuator baseline:
+Каждый service exposes минимальный Spring Boot Actuator baseline:
 
 - `/actuator/health` и probe groups для health checks.
 - `/actuator/info` для service metadata.
@@ -117,8 +161,15 @@ Tenant isolation покрыта integration и controller tests:
 - `/actuator/prometheus` для Prometheus scraping.
 
 Набор exposed actuator endpoints управляется через `ACTUATOR_ENDPOINTS` и по умолчанию равен `health,info,metrics,prometheus`.
-Также каждый сервис пишет одну structured log line `http_request` на request: method, URI, status и duration.
+Каждый service также пишет одну structured `http_request` log line на request: method, URI, status и duration.
+
+## Ограничения / security
+
+- Только sandbox project; authentication/authorization layer не документирован для public production use.
+- Demo passwords являются placeholders и должны быть заменены для любой реальной среды.
+- Tenant isolation patterns намеренно смешаны для сравнения, это не единый recommended production blueprint.
+- Перед адаптацией вне local demo нужно отдельно проверить database migrations, tenant provisioning, observability и auth.
 
 ## Статус
 
-Только backend architecture demo. Репозиторий является sandbox для изучения multi-tenancy patterns и не позиционируется как поддерживаемый продукт.
+Backend architecture demo. Репозиторий опубликован как reference implementation для service boundaries, runtime wiring и configuration hygiene; он не поддерживается как production-ready product.
