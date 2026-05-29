@@ -169,3 +169,7 @@ Each service also logs one structured `http_request` line per request with metho
 ## Status
 
 Backend architecture demo. The repository is public as a reference implementation for service boundaries, runtime wiring, and configuration hygiene; it is not maintained as a production-ready product.
+
+## License
+
+[MIT](LICENSE)
